@@ -1,23 +1,15 @@
 import {createPlaywrightRouter, Dataset} from 'crawlee';
 import { fieldRules } from './rules.js';
+import { getFieldAuditsAsObject, setFieldAudit, clearFieldAudits } from "./audit.js";
 
 export const router = createPlaywrightRouter();
 const hostnames = new Set();
 const protocols = new Set();
 let dataSetId = "";
 
-const errors = new Map<string, any>();
-const addError = (field: string, message: string, elementTag: string | null = null) => {
-    if(!errors.has(field)) {
-        errors.set(field, []);
-    }
-    const fieldErrors = errors.get(field);
-    fieldErrors!.push({message: message, elementTag: elementTag});
-}
-
 // @ts-ignore
 const onPageSEO = async ({ request, page, log, parseWithCheerio }) => {
-    errors.clear();
+    clearFieldAudits();
 
     const $ = await parseWithCheerio();
 
@@ -41,7 +33,13 @@ const onPageSEO = async ({ request, page, log, parseWithCheerio }) => {
             }
             for (const rule of fieldRule.rules) {
                 if(rule.func(value)) {
-                    addError(fieldRule.name, `${fieldRule.label} ${rule.message}`, elementTag);
+                    setFieldAudit({
+                        name: fieldRule.name,
+                        value,
+                        error: `${fieldRule.label} ${rule.message}`,
+                        group: 'meta tags',
+                        elementTag,
+                    })
                 }
             }
         }
@@ -58,7 +56,13 @@ const onPageSEO = async ({ request, page, log, parseWithCheerio }) => {
                 const elementTag = $(el).toString();
                 for (const rule of fieldRule.rules) {
                     if(rule.func(value)) {
-                        addError(`${fieldRule.name}_${index}`, `${fieldRule.label} ${rule.message}`, elementTag);
+                        setFieldAudit({
+                            name: `${fieldRule.name}_${index}`,
+                            value,
+                            error: `${fieldRule.label} ${rule.message}`,
+                            group: 'meta tags',
+                            elementTag,
+                        });
                     }
                 }
             })
@@ -66,11 +70,7 @@ const onPageSEO = async ({ request, page, log, parseWithCheerio }) => {
     }
 
     const dataset = await Dataset.open(dataSetId);
-    const _errors = {} as {[key: string]: string[]}
-    for(const [k, v] of errors) {
-        _errors[k] = v;
-    }
-    await dataset.pushData({ url: request.loadedUrl, errors: _errors});
+    await dataset.pushData({ url: request.loadedUrl, audits: getFieldAuditsAsObject() });
 }
 
 router.addDefaultHandler(async ({ request, page, log, enqueueLinks, parseWithCheerio }) => {
