@@ -8,7 +8,7 @@ export interface SeoFieldRule {
 export interface SEOField {
     name: string,
     label: string,
-    getValue(el: Cheerio): string | string[],
+    getValue(el: Cheerio): string,
     getElement($: CheerioRoot) : Cheerio | undefined,
     rules: SeoFieldRule[],
 }
