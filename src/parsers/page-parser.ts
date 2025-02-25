@@ -1,4 +1,5 @@
 import {CheerioRoot} from "crawlee";
+import {SEOField} from "../types.js";
 
 export interface ParserResult {
     url: string,
@@ -9,7 +10,7 @@ export interface FieldAudit {
     name: string,
     value: string,
     group: string,
-    elementTag: string | null | undefined,
+    elementTag?: string | null | undefined,
     errors: string[],
 }
 
@@ -18,8 +19,23 @@ export interface SetFieldAuditParam extends Omit<FieldAudit, "errors"> {
 }
 
 export class PageParser {
-    protected url;
-    protected audits;
+    public url: string;
+    /**
+     * Contains all the errors of the page
+     */
+    public audits;
+    /**
+     * List of SEO elements to check
+     */
+    public seoFields: SEOField[] | [] = [];
+    /**
+     * List of seo fields whose values are arrays
+     */
+    public arrayValuedSeoFields: string[] = [];
+    /**
+     * Group of the audits
+     */
+    public group: string = '';
 
     constructor(url: string) {
         if(!url.startsWith("http")) {
@@ -27,6 +43,13 @@ export class PageParser {
         }
         this.url = url;
         this.audits = new Map<string, FieldAudit>();
+        this.setup();
+    }
+
+    /**
+     * Overridable on class construct
+     */
+    setup() {
     }
 
     setFieldAudit({ name, value, error, group, elementTag} : SetFieldAuditParam) {
@@ -52,11 +75,60 @@ export class PageParser {
         return clone;
     }
 
+    /**
+     * Convert audits value from Map to Object
+     */
     getFieldAuditsAsObject() : {[key: string] : FieldAudit}{
         const obj = {} as {[key: string] : FieldAudit};
         for(const [k, v] of this.audits) {
             obj[k] = v;
         }
         return obj;
+    }
+
+    /**
+     * Iterate seoFields property, get each value and check if it's valid and returns the audits
+     * @param $
+     */
+    async parse({ $ } : { $: CheerioRoot }) : Promise<ParserResult>  {
+        for(const seoField of this.seoFields) {
+            const el = seoField.getElement($);
+            if(el) {
+                if(this.arrayValuedSeoFields.includes(seoField.name)) {
+                    el.each((index, subEl) => {
+                        const value = seoField.getValue($(subEl));
+                        for (const rule of seoField.rules) {
+                            if(rule.func(value)) {
+                                this.setFieldAudit({
+                                    name: seoField.name+'_'+index,
+                                    value: value,
+                                    group: this.group,
+                                    error: `${seoField.label} ${rule.message}`,
+                                    elementTag: el.toString(),
+                                });
+                            }
+                        }
+                    })
+                } else {
+                    const value = seoField.getValue(el);
+                    for (const rule of seoField.rules) {
+                        if(rule.func(value)) {
+                            this.setFieldAudit({
+                                name: seoField.name,
+                                value: value,
+                                group: this.group,
+                                error: `${seoField.label} ${rule.message}`,
+                                elementTag: el.toString(),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        return {
+            url: this.url,
+            audits: this.getFieldAuditsAsObject(),
+        }
     }
 }
