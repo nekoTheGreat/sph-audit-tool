@@ -7,22 +7,22 @@ export function isNotEmpty(value: string) : boolean {
 }
 
 export function isStrLenGreater(value: string, limit: number) : boolean {
-    if(!value) return false;
+    if(!value) return true;
     return value.length > limit;
 }
 
 export function isStrLenGreaterOrEqual(value: string, limit: number) : boolean {
-    if(!value) return false;
+    if(!value) return true;
     return value.length >= limit;
 }
 
 export function isStrLenLess(value: string, limit: number) : boolean {
-    if(!value) return false;
+    if(!value) return true;
     return value.length < limit;
 }
 
 export function isStrLenLessOrEqual(value: string, limit: number) : boolean {
-    if(!value) return false;
+    if(!value) return true;
     return value.length <= limit;
 }
 
