@@ -98,13 +98,13 @@ export class PageParser {
                     el.each((index, subEl) => {
                         const value = seoField.getValue($(subEl));
                         for (const rule of seoField.rules) {
-                            if(rule.func(value)) {
+                            if(!rule.validate({ value, el: $(subEl)})) {
                                 this.setFieldAudit({
                                     name: seoField.name+'_'+index,
                                     value: value,
                                     group: this.group,
-                                    error: `${seoField.label} ${rule.message}`,
-                                    elementTag: el.toString(),
+                                    error: `${seoField.label} ${rule.errorMessage}`,
+                                    elementTag: $(subEl).html(),
                                 });
                             }
                         }
@@ -112,13 +112,13 @@ export class PageParser {
                 } else {
                     const value = seoField.getValue(el);
                     for (const rule of seoField.rules) {
-                        if(rule.func(value)) {
+                        if(!rule.validate({ value, el })) {
                             this.setFieldAudit({
                                 name: seoField.name,
                                 value: value,
                                 group: this.group,
-                                error: `${seoField.label} ${rule.message}`,
-                                elementTag: el.toString(),
+                                error: `${seoField.label} ${rule.errorMessage}`,
+                                elementTag: el.html(),
                             });
                         }
                     }
