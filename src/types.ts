@@ -15,7 +15,7 @@ export interface SeoFieldRuleResult {
 export interface SEOField {
     name: string,
     label: string,
-    getValue(el: Cheerio): string,
+    getValue({ el, $ }: { el: Cheerio, $: CheerioRoot}): string,
     getElement($: CheerioRoot) : Cheerio | undefined,
     rules: SeoFieldRule[],
 }

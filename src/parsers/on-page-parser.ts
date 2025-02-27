@@ -17,7 +17,7 @@ export class OnPageParser extends PageParser
                 getElement($: CheerioRoot): cheerio.Cheerio | undefined {
                     return $('title');
                 },
-                getValue(el: Cheerio): string {
+                getValue({ el }): string {
                     return el.text();
                 },
                 rules: [
@@ -52,7 +52,7 @@ export class OnPageParser extends PageParser
                 getElement($: CheerioRoot): Cheerio | undefined {
                     return $('meta[name="description"]');
                 },
-                getValue(el: Cheerio): string {
+                getValue({ el }): string {
                     return el.prop('content');
                 },
                 rules: [
@@ -87,7 +87,7 @@ export class OnPageParser extends PageParser
                 getElement($: CheerioRoot): cheerio.Cheerio | undefined {
                     return $('img');
                 },
-                getValue(el: Cheerio): string {
+                getValue({ el }): string {
                     return el.prop('src');
                 },
                 rules: [
@@ -113,7 +113,7 @@ export class OnPageParser extends PageParser
                 getElement($: CheerioRoot): cheerio.Cheerio | undefined {
                     return $('h1');
                 },
-                getValue(el: cheerio.Cheerio): string {
+                getValue({ el }): string {
                     return el.val();
                 },
                 rules: [

@@ -100,7 +100,7 @@ export class PageParser {
             if(el) {
                 if(this.arrayValuedSeoFields.includes(seoField.name)) {
                     el.each((index, subEl) => {
-                        const value = seoField.getValue($(subEl));
+                        const value = seoField.getValue({ el: $(subEl), $});
                         for (const rule of seoField.rules) {
                             if(globalSkipRules.has(rule.name)) continue;
                             const ruleResult = rule.validate({ value, el: $(subEl)});
@@ -120,7 +120,7 @@ export class PageParser {
                         }
                     })
                 } else {
-                    const value = seoField.getValue(el);
+                    const value = seoField.getValue({ el, $ });
                     for (const rule of seoField.rules) {
                         if(globalSkipRules.has(rule.name)) continue;
                         const ruleResult = rule.validate({ value, el: el });
