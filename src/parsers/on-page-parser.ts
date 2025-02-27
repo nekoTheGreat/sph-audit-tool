@@ -126,8 +126,8 @@ export class OnPageParser extends PageParser
                     },
                     {
                         name: 'one_h1_only',
-                        validate({ el }) {
-                            return { valid: el.length == 1 };
+                        validate({ $ }) {
+                            return { valid: $('h1').filter( (_, subEl) => $(subEl).text().trim().length > 0 ).length == 1 };
                         },
                         errorMessage: 'should only be one per page'
                     },
