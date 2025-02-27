@@ -22,20 +22,25 @@ export class OnPageParser extends PageParser
                 },
                 rules: [
                     {
-                        validate: ({ value }) => isNotEmpty(value),
+                        name: 'required',
+                        validate: ({ value }) => {
+                            return { valid: isNotEmpty(value), skipRules: ['unique_titles', 'char60'] };
+                        },
                         errorMessage: 'is required'
                     },
                     {
-                        validate({ value }) : boolean {
-                            return isStrLenLessOrEqual(value, 60);
+                        name: 'char60',
+                        validate({ value }) {
+                            return { valid: isStrLenLessOrEqual(value, 60) };
                         },
                         errorMessage: 'character limit is 60'
                     },
                     {
-                        validate({ value }) : boolean {
+                        name: 'unique_titles',
+                        validate({ value }) {
                             const res = isStrUnique(value, self.uniqueTitles);
                             if(!res) self.uniqueTitles.add(value);
-                            return res;
+                            return { valid: res };
                         },
                         errorMessage: 'is a duplicate'
                     }
@@ -52,20 +57,25 @@ export class OnPageParser extends PageParser
                 },
                 rules: [
                     {
-                        validate: ({ value }) => isNotEmpty(value),
+                        name: 'required',
+                        validate: ({ value }) => {
+                            return { valid: isNotEmpty(value), skipRules: ['unique_meta_description', 'char150'] };
+                        },
                         errorMessage: 'is required'
                     },
                     {
-                        validate({ value }) : boolean {
-                            return isStrLenLessOrEqual(value, 150);
+                        name: 'char150',
+                        validate({ value }) {
+                            return { valid: isStrLenLessOrEqual(value, 150) };
                         },
                         errorMessage: 'character limit is 150'
                     },
                     {
-                        validate({ value }) : boolean {
+                        name: 'unique_meta_description',
+                        validate({ value }) {
                             const res = isStrUnique(value, self.uniqueMetaDescriptions);
                             if(!res) self.uniqueMetaDescriptions.add(value);
-                            return res;
+                            return { valid: res };
                         },
                         errorMessage: 'is a duplicate'
                     }
@@ -82,12 +92,16 @@ export class OnPageParser extends PageParser
                 },
                 rules: [
                     {
-                        validate: ({ value }) => isNotEmpty(value),
+                        name: 'required',
+                        validate: ({ value }) => {
+                            return { valid: isNotEmpty(value), skipRules: ['char100'] };
+                        },
                         errorMessage: 'is required'
                     },
                     {
-                        validate({ value }) : boolean {
-                            return isStrLenLessOrEqual(value, 100);
+                        name: 'char100',
+                        validate({ value }) {
+                            return { valid: isStrLenLessOrEqual(value, 100) };
                         },
                         errorMessage: 'character limit is 100'
                     },
@@ -100,22 +114,20 @@ export class OnPageParser extends PageParser
                     return $('h1');
                 },
                 getValue(el: cheerio.Cheerio): string {
-                    return el.text();
+                    return el.val();
                 },
                 rules: [
                     {
+                        name: 'h1_required',
                         validate({ el }) {
-                            let hasContent = false;
-                            el.each((_, subEl) => {
-                                if(isNotEmpty( subEl.data?.toString() ?? '')) hasContent = true;
-                            });
-                            return hasContent;
+                            return { valid: isNotEmpty(el.text()), skipRules: ['one_h1_only'] };
                         },
                         errorMessage: 'is required'
                     },
                     {
-                        validate({ el }) : boolean {
-                            return el.length == 1;
+                        name: 'one_h1_only',
+                        validate({ el }) {
+                            return { valid: el.length == 1 };
                         },
                         errorMessage: 'should only be one per page'
                     },
