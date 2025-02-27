@@ -98,47 +98,27 @@ export class PageParser {
         for(const seoField of this.seoFields) {
             const el = seoField.getElement($);
             if(el) {
-                if(this.arrayValuedSeoFields.includes(seoField.name)) {
-                    el.each((index, subEl) => {
-                        const value = seoField.getValue({ el: $(subEl), $});
-                        for (const rule of seoField.rules) {
-                            if(globalSkipRules.has(rule.name)) continue;
-                            const ruleResult = rule.validate({ value, el: $(subEl)});
-                            if(!ruleResult.valid) {
-                                if(ruleResult.skipRules) {
-                                    globalSkipRules = new Set<string>([...globalSkipRules, ...ruleResult.skipRules]);
-                                }
-
-                                this.setFieldAudit({
-                                    name: seoField.name+'_'+index,
-                                    value: value,
-                                    group: this.group,
-                                    error: `${seoField.label} ${rule.errorMessage}`,
-                                    elementTag: $(subEl).html(),
-                                });
-                            }
-                        }
-                    })
-                } else {
-                    const value = seoField.getValue({ el, $ });
+                el.each((index, subEl) => {
+                    const value = seoField.getValue({ el: $(subEl), $});
                     for (const rule of seoField.rules) {
                         if(globalSkipRules.has(rule.name)) continue;
-                        const ruleResult = rule.validate({ value, el: el });
+                        const ruleResult = rule.validate({ value, el: $(subEl), $});
                         if(!ruleResult.valid) {
                             if(ruleResult.skipRules) {
                                 globalSkipRules = new Set<string>([...globalSkipRules, ...ruleResult.skipRules]);
                             }
 
+                            const auditName = el.length < 2 ? seoField.name : seoField.name + '_' + index;
                             this.setFieldAudit({
-                                name: seoField.name,
+                                name: auditName,
                                 value: value,
                                 group: this.group,
                                 error: `${seoField.label} ${rule.errorMessage}`,
-                                elementTag: el.html(),
+                                elementTag: $(subEl).html(),
                             });
                         }
                     }
-                }
+                })
             }
         }
 
