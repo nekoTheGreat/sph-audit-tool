@@ -3,7 +3,7 @@ import Cheerio = cheerio.Cheerio;
 
 export interface SeoFieldRule {
     name: string,
-    validate({ value, el } : { value: string, el: cheerio.Cheerio}): SeoFieldRuleResult,
+    validate({ value, el, $ } : { value: string, el: cheerio.Cheerio, $: CheerioRoot}): SeoFieldRuleResult,
     errorMessage: string,
 }
 
