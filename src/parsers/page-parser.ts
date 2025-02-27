@@ -20,6 +20,8 @@ export interface SetFieldAuditParam extends Omit<FieldAudit, "errors"> {
 
 export class PageParser {
     public url: string;
+
+    public $: CheerioRoot;
     /**
      * Contains all the errors of the page
      */
@@ -37,11 +39,12 @@ export class PageParser {
      */
     public group: string = '';
 
-    constructor(url: string) {
+    constructor(url: string, $: CheerioRoot) {
         if(!url.startsWith("http")) {
             url = "https://" + url;
         }
         this.url = url;
+        this.$ = $;
         this.audits = new Map<string, FieldAudit>();
         this.setup();
     }
@@ -91,6 +94,7 @@ export class PageParser {
      * @param $
      */
     async parse({ $ } : { $: CheerioRoot }) : Promise<ParserResult>  {
+        let globalSkipRules = new Set<string>();
         for(const seoField of this.seoFields) {
             const el = seoField.getElement($);
             if(el) {
@@ -98,7 +102,13 @@ export class PageParser {
                     el.each((index, subEl) => {
                         const value = seoField.getValue($(subEl));
                         for (const rule of seoField.rules) {
-                            if(!rule.validate({ value, el: $(subEl)})) {
+                            if(globalSkipRules.has(rule.name)) continue;
+                            const ruleResult = rule.validate({ value, el: $(subEl)});
+                            if(!ruleResult.valid) {
+                                if(ruleResult.skipRules) {
+                                    globalSkipRules = new Set<string>([...globalSkipRules, ...ruleResult.skipRules]);
+                                }
+
                                 this.setFieldAudit({
                                     name: seoField.name+'_'+index,
                                     value: value,
@@ -112,7 +122,13 @@ export class PageParser {
                 } else {
                     const value = seoField.getValue(el);
                     for (const rule of seoField.rules) {
-                        if(!rule.validate({ value, el })) {
+                        if(globalSkipRules.has(rule.name)) continue;
+                        const ruleResult = rule.validate({ value, el: el });
+                        if(!ruleResult.valid) {
+                            if(ruleResult.skipRules) {
+                                globalSkipRules = new Set<string>([...globalSkipRules, ...ruleResult.skipRules]);
+                            }
+
                             this.setFieldAudit({
                                 name: seoField.name,
                                 value: value,
