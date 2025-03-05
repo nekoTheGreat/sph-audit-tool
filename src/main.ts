@@ -1,4 +1,3 @@
-// For more information, see https://crawlee.dev/
 import {createPlaywrightRouter, Dataset, PlaywrightCrawler } from 'crawlee';
 import {OnPageParser} from "./parsers/on-page-parser.js";
 
@@ -16,9 +15,8 @@ async function crawlWebsite(url: string) {
         log.info(`Processing URL: ${request.url}`);
         const $ = await parseWithCheerio();
 
-        const onPageParser = new OnPageParser(request.url);
-        const result = await onPageParser.parse({ $ });
-        await dataset.pushData(result);
+        const onPageParser = new OnPageParser(request.url, $);
+        await dataset.pushData(await onPageParser.parse({ $ }));
 
         log.info(`enqueueing new URLs`);
         const hostname = parsedUrl.hostname.replace("www.", "");
@@ -36,10 +34,9 @@ async function crawlWebsite(url: string) {
         log.info(`Processing URL: ${request.url}`);
 
         const $ = await parseWithCheerio();
-        const onPageParser = new OnPageParser(request.url);
-        const result = await onPageParser.parse({ $ });
 
-        await dataset.pushData(result);
+        const onPageParser = new OnPageParser(request.url, $);
+        await dataset.pushData(await onPageParser.parse({ $ }));
 
         log.info(`Processed URL: ${request.url}`);
     });
