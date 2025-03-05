@@ -41,6 +41,7 @@ async function crawlWebsite(url: string) {
         log.info(`Processed URL: ${request.url}`);
     });
 
+    const brokenLinks = new Set<string>();
 
     const crawler = new PlaywrightCrawler({
         launchContext: {
@@ -58,19 +59,15 @@ async function crawlWebsite(url: string) {
         requestHandler: router,
         failedRequestHandler: async ({ log, request }) => {
             log.info(`Failed URL: ${request.url}`);
-            // setFieldAudit({
-            //     name: 'url',
-            //     value: request.url,
-            //     error: '404',
-            //     group: 'general',
-            //     elementTag: null,
-            // });
+            brokenLinks.add(request.url);
         },
         // Comment this option to scrape the full website.
         maxRequestsPerCrawl: 20,
     });
 
     await crawler.run([url]);
+
+    await dataset.pushData({ brokenLinks: Array.from(brokenLinks) });
 }
 
 await crawlWebsite('bwd.local');
