@@ -7,6 +7,7 @@ export class OnPageParser extends PageParser
 {
     uniqueMetaDescriptions = new Set<string>();
     uniqueTitles = new Set<string>();
+    uniqueRootUrls = new Set<string>();
 
     override setup() {
         const self = this;
@@ -132,6 +133,30 @@ export class OnPageParser extends PageParser
                         errorMessage: 'should only be one per page'
                     },
                 ],
+            },
+            {
+                name: 'root_url',
+                label: 'Root URL',
+                getElement(): cheerio.Cheerio | undefined {
+                    return undefined;
+                },
+                getValue(): string {
+                    return '';
+                },
+                rules: [
+                    {
+                        name: 'unique_url',
+                        validate({ url }) {
+                            let valid = false;
+                            if(!self.uniqueRootUrls.has(url)) {
+                                valid = true;
+                                self.uniqueRootUrls.add(url);
+                            }
+                            return { valid };
+                        },
+                        errorMessage: 'Multiple root URLs',
+                    }
+                ]
             }
         ];
         this.arrayValuedSeoFields = ['image_alt'];
