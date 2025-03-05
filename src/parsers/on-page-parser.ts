@@ -24,21 +24,21 @@ export class OnPageParser extends PageParser
                 rules: [
                     {
                         name: 'required',
-                        validate: ({ value }) => {
+                        async validate({ value }) {
                             return { valid: isNotEmpty(value), skipRules: ['unique_titles', 'char60'] };
                         },
                         errorMessage: 'is required'
                     },
                     {
                         name: 'char60',
-                        validate({ value }) {
+                        async validate( { value }) {
                             return { valid: isStrLenLessOrEqual(value, 60) };
                         },
                         errorMessage: 'character limit is 60'
                     },
                     {
                         name: 'unique_titles',
-                        validate({ value }) {
+                        async validate( { value }) {
                             const res = isStrUnique(value, self.uniqueTitles);
                             if(!res) self.uniqueTitles.add(value);
                             return { valid: res };
@@ -59,21 +59,21 @@ export class OnPageParser extends PageParser
                 rules: [
                     {
                         name: 'required',
-                        validate: ({ value }) => {
+                        async validate({ value }) {
                             return { valid: isNotEmpty(value), skipRules: ['unique_meta_description', 'char150'] };
                         },
                         errorMessage: 'is required'
                     },
                     {
                         name: 'char150',
-                        validate({ value }) {
+                        async validate( { value }) {
                             return { valid: isStrLenLessOrEqual(value, 150) };
                         },
                         errorMessage: 'character limit is 150'
                     },
                     {
                         name: 'unique_meta_description',
-                        validate({ value }) {
+                        async validate( { value }) {
                             const res = isStrUnique(value, self.uniqueMetaDescriptions);
                             if(!res) self.uniqueMetaDescriptions.add(value);
                             return { valid: res };
@@ -94,14 +94,14 @@ export class OnPageParser extends PageParser
                 rules: [
                     {
                         name: 'required',
-                        validate: ({ value }) => {
+                        async validate({ value }) {
                             return { valid: isNotEmpty(value), skipRules: ['char100'] };
                         },
                         errorMessage: 'is required'
                     },
                     {
                         name: 'char100',
-                        validate({ value }) {
+                        async validate( { value }) {
                             return { valid: isStrLenLessOrEqual(value, 100) };
                         },
                         errorMessage: 'character limit is 100'
@@ -120,14 +120,14 @@ export class OnPageParser extends PageParser
                 rules: [
                     {
                         name: 'h1_required',
-                        validate({ el }) {
+                        async validate( { el }) {
                             return { valid: isNotEmpty(el.text()), skipRules: ['one_h1_only'] };
                         },
                         errorMessage: 'is required'
                     },
                     {
                         name: 'one_h1_only',
-                        validate({ $ }) {
+                        async validate( { $ }) {
                             return { valid: $('h1').filter( (_, subEl) => $(subEl).text().trim().length > 0 ).length == 1 };
                         },
                         errorMessage: 'should only be one per page'
@@ -146,7 +146,7 @@ export class OnPageParser extends PageParser
                 rules: [
                     {
                         name: 'unique_url',
-                        validate({ url }) {
+                        async validate( { url }) {
                             let valid = false;
                             if(!self.uniqueRootUrls.has(url)) {
                                 valid = true;
@@ -170,7 +170,7 @@ export class OnPageParser extends PageParser
                 rules: [
                     {
                         name: 'url_optimized',
-                        validate({ url }) {
+                        async validate( { url }) {
                             const decodedUrl = decodeURI(url);
                             return { valid: /\s/.exec(decodedUrl) == null };
                         },
