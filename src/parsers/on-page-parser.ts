@@ -157,6 +157,26 @@ export class OnPageParser extends PageParser
                         errorMessage: 'Multiple root URLs',
                     }
                 ]
+            },
+            {
+                name: 'url_structure',
+                label: 'Root URL',
+                getElement(): cheerio.Cheerio | undefined {
+                    return undefined;
+                },
+                getValue(): string {
+                    return '';
+                },
+                rules: [
+                    {
+                        name: 'url_optimized',
+                        validate({ url }) {
+                            const decodedUrl = decodeURI(url);
+                            return { valid: /\s/.exec(decodedUrl) == null };
+                        },
+                        errorMessage: 'Multiple root URLs',
+                    }
+                ]
             }
         ];
         this.arrayValuedSeoFields = ['image_alt'];
