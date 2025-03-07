@@ -98,7 +98,7 @@ export class PageParser {
         for(const seoField of this.seoFields) {
             const el = seoField.getElement($);
             if(el) {
-                el.each(async (index, subEl) => {
+                el.each(async (_, subEl) => {
                     const value = seoField.getValue({ el: $(subEl), $});
                     for (const rule of seoField.rules) {
                         if(globalSkipRules.has(rule.name)) continue;
@@ -108,9 +108,8 @@ export class PageParser {
                                 globalSkipRules = new Set<string>([...globalSkipRules, ...ruleResult.skipRules]);
                             }
 
-                            const auditName = el.length < 2 ? seoField.name : seoField.name + '_' + index;
                             this.setFieldAudit({
-                                name: auditName,
+                                name: seoField.name,
                                 value: value,
                                 group: this.group,
                                 error: `${seoField.label} ${rule.errorMessage}`,
