@@ -1,7 +1,6 @@
-import {CheerioRoot} from "crawlee";
 import {PageParser} from "./page-parser.js";
 import {isNotEmpty, isStrLenLessOrEqual, isStrUnique} from "../common-validators.js";
-import Cheerio = cheerio.Cheerio;
+import {AuditError, SeoFieldRuleResult, SeoFieldRuleValidateParam } from "../types.js";
 
 export class OnPageParser extends PageParser
 {
@@ -10,176 +9,128 @@ export class OnPageParser extends PageParser
     uniqueRootUrls = new Set<string>();
 
     override setup() {
+        this.group = 'on-page';
         const self = this;
         this.seoFields = [
             {
                 name: 'title',
                 label: 'Title',
-                getElement($: CheerioRoot): cheerio.Cheerio | undefined {
-                    return $('title');
-                },
-                getValue({ el }): string {
-                    return el.text();
-                },
-                rules: [
-                    {
-                        name: 'required',
-                        async validate({ value }) {
-                            return { valid: isNotEmpty(value), skipRules: ['unique_titles', 'char60'] };
-                        },
-                        errorMessage: 'is required'
-                    },
-                    {
-                        name: 'char60',
-                        async validate( { value }) {
-                            return { valid: isStrLenLessOrEqual(value, 60) };
-                        },
-                        errorMessage: 'character limit is 60'
-                    },
-                    {
-                        name: 'unique_titles',
-                        async validate( { value }) {
-                            const res = isStrUnique(value, self.uniqueTitles);
-                            if(!res) self.uniqueTitles.add(value);
-                            return { valid: res };
-                        },
-                        errorMessage: 'is a duplicate'
+                async validate({ $ }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
+                    const value = $('title').text();
+                    const errors = [] as AuditError[];
+                    if(!isNotEmpty(value)) {
+                        errors.push({key: 'required'});
+                    } else {
+                        if(!isStrLenLessOrEqual(value, 60)) {
+                            errors.push({key: 'character_limit', message: 'character limit is 60'})
+                        }
+                        const res = isStrUnique(value, self.uniqueTitles);
+                        if(!res) {
+                            self.uniqueTitles.add(value);
+                        }
+                        else {
+                            errors.push({key: 'duplicate'});
+                        }
                     }
-                ]
+                    return {
+                        name: this.name,
+                        valid: errors.length == 0,
+                        errors,
+                    }
+                },
             },
             {
                 name: 'meta_description',
                 label: 'Meta Description',
-                getElement($: CheerioRoot): Cheerio | undefined {
-                    return $('meta[name="description"]');
-                },
-                getValue({ el }): string {
-                    return el.prop('content');
-                },
-                rules: [
-                    {
-                        name: 'required',
-                        async validate({ value }) {
-                            return { valid: isNotEmpty(value), skipRules: ['unique_meta_description', 'char150'] };
-                        },
-                        errorMessage: 'is required'
-                    },
-                    {
-                        name: 'char150',
-                        async validate( { value }) {
-                            return { valid: isStrLenLessOrEqual(value, 150) };
-                        },
-                        errorMessage: 'character limit is 150'
-                    },
-                    {
-                        name: 'unique_meta_description',
-                        async validate( { value }) {
-                            const res = isStrUnique(value, self.uniqueMetaDescriptions);
-                            if(!res) self.uniqueMetaDescriptions.add(value);
-                            return { valid: res };
-                        },
-                        errorMessage: 'is a duplicate'
+                async validate({ $ }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
+                    const value = $('meta[name="description"]').prop('content');
+                    const errors = [] as AuditError[];
+                    if(!isNotEmpty(value)) {
+                        errors.push({key: 'required'});
+                    } else {
+                        if(!isStrLenLessOrEqual(value, 150)) {
+                            errors.push({key: 'character_limit', message: 'character limit is 150'})
+                        }
+                        const res = isStrUnique(value, self.uniqueMetaDescriptions);
+                        if(!res) self.uniqueMetaDescriptions.add(value);
+                        else {
+                            errors.push({key: 'duplicate'});
+                        }
                     }
-                ],
+                    return {
+                        name: this.name,
+                        valid: errors.length == 0,
+                        errors,
+                    }
+                },
             },
             {
                 name: 'image_alt',
-                label: 'Image Alt',
-                getElement($: CheerioRoot): cheerio.Cheerio | undefined {
-                    return $('img');
+                label: 'Image',
+                async validate({ $ }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
+                    const errors = [] as AuditError[];
+                    $('img').each((_, el) => {
+                        const value = $(el).prop('alt');
+                        if(!isNotEmpty(value)) {
+                            errors.push({key: 'required'});
+                        } else {
+                            if(!isStrLenLessOrEqual(value, 100)) {
+                                errors.push({key: 'character_limit', message: 'character limit is 100'})
+                            }
+                        }
+                    });
+                    return {
+                        name: this.name,
+                        valid: errors.length == 0,
+                        errors,
+                    }
                 },
-                getValue({ el }): string {
-                    return el.prop('src');
-                },
-                rules: [
-                    {
-                        name: 'required',
-                        async validate({ value }) {
-                            return { valid: isNotEmpty(value), skipRules: ['char100'] };
-                        },
-                        errorMessage: 'is required'
-                    },
-                    {
-                        name: 'char100',
-                        async validate( { value }) {
-                            return { valid: isStrLenLessOrEqual(value, 100) };
-                        },
-                        errorMessage: 'character limit is 100'
-                    },
-                ],
             },
             {
                 name: 'h1',
                 label: 'H1',
-                getElement($: CheerioRoot): cheerio.Cheerio | undefined {
-                    return $('h1');
+                async validate({ $ }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
+                    const errors = [] as AuditError[];
+                    const el = $('h1');
+                    const value = el.text();
+                    if(!isNotEmpty(value)) {
+                        errors.push({key: 'required'});
+                    } else {
+                        if(!isStrLenLessOrEqual(value, 100)) {
+                            errors.push({key: 'character_limit', message: 'character limit is 100'})
+                        }
+                        if(el.filter( (_, subEl) => $(subEl).text().trim().length > 0 ).length > 0) {
+                            errors.push({key: 'duplicate'});
+                        }
+                    }
+                    return {
+                        name: this.name,
+                        valid: errors.length == 0,
+                        errors,
+                    }
                 },
-                getValue({ el }): string {
-                    return el.val();
-                },
-                rules: [
-                    {
-                        name: 'h1_required',
-                        async validate( { el }) {
-                            return { valid: isNotEmpty(el.text()), skipRules: ['one_h1_only'] };
-                        },
-                        errorMessage: 'is required'
-                    },
-                    {
-                        name: 'one_h1_only',
-                        async validate( { $ }) {
-                            return { valid: $('h1').filter( (_, subEl) => $(subEl).text().trim().length > 0 ).length == 1 };
-                        },
-                        errorMessage: 'should only be one per page'
-                    },
-                ],
             },
             {
                 name: 'root_url',
                 label: 'Root URL',
-                getElement(): cheerio.Cheerio | undefined {
-                    return undefined;
-                },
-                getValue(): string {
-                    return '';
-                },
-                rules: [
-                    {
-                        name: 'unique_url',
-                        async validate( { url }) {
-                            let valid = false;
-                            if(!self.uniqueRootUrls.has(url)) {
-                                valid = true;
-                                self.uniqueRootUrls.add(url);
-                            }
-                            return { valid };
-                        },
-                        errorMessage: 'Multiple root URLs',
+                async validate({ url }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
+                    const errors = [] as AuditError[];
+                    if(!self.uniqueRootUrls.has(url)) {
+                        self.uniqueRootUrls.add(url);
+                    } else {
+                        errors.push({key: 'duplicate'});
                     }
-                ]
+                    const decodedUrl = decodeURI(url);
+                    if(/\s/.exec(decodedUrl) != null) {
+                        errors.push({key: 'unoptimized'})
+                    }
+                    return {
+                        name: this.name,
+                        valid: errors.length == 0,
+                        errors,
+                    }
+                },
             },
-            {
-                name: 'url_structure',
-                label: 'Root URL',
-                getElement(): cheerio.Cheerio | undefined {
-                    return undefined;
-                },
-                getValue(): string {
-                    return '';
-                },
-                rules: [
-                    {
-                        name: 'url_optimized',
-                        async validate( { url }) {
-                            const decodedUrl = decodeURI(url);
-                            return { valid: /\s/.exec(decodedUrl) == null };
-                        },
-                        errorMessage: 'Multiple root URLs',
-                    }
-                ]
-            }
         ];
-        this.arrayValuedSeoFields = ['image_alt'];
-        this.group = 'on-page';
     }
 }

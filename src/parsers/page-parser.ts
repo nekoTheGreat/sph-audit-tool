@@ -1,22 +1,5 @@
 import {CheerioRoot} from "crawlee";
-import {SEOField} from "../types.js";
-
-export interface ParserResult {
-    url: string,
-    audits: {[key: string]: FieldAudit}
-}
-
-export interface FieldAudit {
-    name: string,
-    value: string,
-    group: string,
-    elementTag?: string | null | undefined,
-    errors: string[],
-}
-
-export interface SetFieldAuditParam extends Omit<FieldAudit, "errors"> {
-    error: string
-}
+import {FieldAudit, ParserResult, SEOField, SeoFieldRuleResult} from "../types.js";
 
 export class PageParser {
     public url: string;
@@ -55,11 +38,14 @@ export class PageParser {
     setup() {
     }
 
-    setFieldAudit({ name, value, error, group, elementTag} : SetFieldAuditParam) {
+    setFieldAudit({ name, errors } : FieldAudit) {
         if(!this.audits.has(name)) {
-            this.audits.set(name, {name, value, group, elementTag, errors: []});
+            this.audits.set(name, {name, errors: []});
         }
-        this.audits.get(name)?.errors.push(error);
+        this.audits.get(name)!.errors = [
+            ...this.audits.get(name)!.errors,
+            ...errors,
+        ];
     }
 
     getFieldAudit(name: string) : FieldAudit | null {
@@ -79,14 +65,18 @@ export class PageParser {
     }
 
     /**
-     * Convert audits value from Map to Object
+     * Convert audits value from map to array
      */
-    getFieldAuditsAsObject() : {[key: string] : FieldAudit}{
-        const obj = {} as {[key: string] : FieldAudit};
+    getFieldAuditsAsArray() : FieldAudit[] {
+        const audits = [];
         for(const [k, v] of this.audits) {
-            obj[k] = v;
+            let errors = [];
+            for(const err of v.errors) {
+                errors.push(err);
+            }
+            audits.push({name: v.name, errors});
         }
-        return obj;
+        return audits;
     }
 
     /**
@@ -94,36 +84,23 @@ export class PageParser {
      * @param $
      */
     async parse({ $ } : { $: CheerioRoot }) : Promise<ParserResult>  {
-        let globalSkipRules = new Set<string>();
+        let resultPromises: Promise<SeoFieldRuleResult>[] = [];
         for(const seoField of this.seoFields) {
-            const el = seoField.getElement($);
-            if(el) {
-                el.each(async (_, subEl) => {
-                    const value = seoField.getValue({ el: $(subEl), $});
-                    for (const rule of seoField.rules) {
-                        if(globalSkipRules.has(rule.name)) continue;
-                        const ruleResult = await rule.validate({ value, el: $(subEl), $, url: this.url, group: this.group });
-                        if(!ruleResult.valid) {
-                            if(ruleResult.skipRules) {
-                                globalSkipRules = new Set<string>([...globalSkipRules, ...ruleResult.skipRules]);
-                            }
+            resultPromises.push(seoField.validate({ $, url: this.url }));
+        }
+        const results = await Promise.all(resultPromises);
+        for(const result of results) {
+            if(result.valid) continue;
 
-                            this.setFieldAudit({
-                                name: seoField.name,
-                                value: value,
-                                group: this.group,
-                                error: `${seoField.label} ${rule.errorMessage}`,
-                                elementTag: $(subEl).html(),
-                            });
-                        }
-                    }
-                })
-            }
+            this.setFieldAudit({
+                name: result.name,
+                errors: result.errors ?? [],
+            });
         }
 
         return {
             url: this.url,
-            audits: this.getFieldAuditsAsObject(),
+            audits: this.getFieldAuditsAsArray(),
         }
     }
 }

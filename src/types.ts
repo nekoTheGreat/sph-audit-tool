@@ -1,21 +1,33 @@
 import {CheerioRoot} from "crawlee"
-import Cheerio = cheerio.Cheerio;
 
-export interface SeoFieldRule {
+export interface ParserResult {
+    url: string,
+    audits: FieldAudit[],
+}
+
+export interface AuditError {
+    key: string,
+    message?: string | undefined,
+}
+
+export interface FieldAudit {
     name: string,
-    validate({ value, el, $ } : { value: string, el: cheerio.Cheerio, $: CheerioRoot, url: string, group?: string | undefined }): Promise<SeoFieldRuleResult>,
-    errorMessage: string,
+    errors: AuditError[],
 }
 
 export interface SeoFieldRuleResult {
+    name: string,
     valid: boolean,
-    skipRules?: string[] | undefined,
+    errors?: AuditError[] | undefined,
+}
+
+export interface SeoFieldRuleValidateParam {
+    $: CheerioRoot,
+    url: string,
 }
 
 export interface SEOField {
     name: string,
     label: string,
-    getValue({ el, $ }: { el: Cheerio, $: CheerioRoot}): string,
-    getElement($: CheerioRoot) : Cheerio | undefined,
-    rules: SeoFieldRule[],
+    validate({ $, url } : SeoFieldRuleValidateParam ): Promise<SeoFieldRuleResult>,
 }
