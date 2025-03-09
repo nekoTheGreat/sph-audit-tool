@@ -16,7 +16,8 @@ async function crawlWebsite(url: string) {
         const $ = await parseWithCheerio();
 
         const onPageParser = new OnPageParser(request.url, $);
-        await dataset.pushData(await onPageParser.parse({ $ }));
+        const parseResult = await onPageParser.parse({ $ });
+        await dataset.pushData(parseResult);
 
         log.info(`enqueueing new URLs`);
         const hostname = parsedUrl.hostname.replace("www.", "");
@@ -36,7 +37,8 @@ async function crawlWebsite(url: string) {
         const $ = await parseWithCheerio();
 
         const onPageParser = new OnPageParser(request.url, $);
-        await dataset.pushData(await onPageParser.parse({ $ }));
+        const parseResult = await onPageParser.parse({ $ });
+        await dataset.pushData(parseResult);
 
         log.info(`Processed URL: ${request.url}`);
     });
