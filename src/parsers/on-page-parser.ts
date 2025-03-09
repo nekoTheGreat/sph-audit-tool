@@ -87,6 +87,40 @@ export class OnPageParser extends PageParser
                 },
             },
             {
+                name: 'image_link',
+                label: 'Image Links',
+                async validate({ $ }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
+                    const errors = [] as AuditError[];
+                    const checksPromises = [] as Promise<{url: string, valid: boolean}>[];
+                    $('img').each((_, el) => {
+                        checksPromises.push(new Promise((resolve) => {
+                            (async () => {
+                                const src = $(el).prop('src');
+                                let valid = true;
+                                try {
+                                    const resp = await fetch(src);
+                                    if(resp.status >= 400) throw "Broken";
+                                } catch (e) {
+                                    valid = false;
+                                }
+                                resolve({ url: src, valid });
+                            })();
+                        }))
+                    });
+                    const results = await Promise.all(checksPromises);
+                    for(const result of results) {
+                        if(!result.valid) {
+                            errors.push({key: 'broken_link', message: result.url});
+                        }
+                    }
+                    return {
+                        name: this.name,
+                        valid: errors.length == 0,
+                        errors,
+                    }
+                },
+            },
+            {
                 name: 'h1',
                 label: 'H1',
                 async validate({ $ }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
