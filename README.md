@@ -1,8 +1,9 @@
-# Crawlee + PlaywrightCrawler + TypeScript project
+SEO Audit Tool Development
 
-This template is a production ready boilerplate for developing with `PlaywrightCrawler`. Use this to bootstrap your projects using the most up-to-date code.
+The goal of this tool is to generate two reports:
 
-If you're looking for examples or want to learn more visit:
-
-- [Documentation](https://crawlee.dev/api/playwright-crawler/class/PlaywrightCrawler)
-- [Examples](https://crawlee.dev/docs/examples/playwright-crawler)
+1. A report containing the summary of the SEO audit as well as the rating - for email reply to client after requesting an SEO audit.
+On-page summary report (Rating: Failed, Needs Improvement, Passed)
+Off-page summary report (Rating: Failed, Needs Improvement, Passed)
+Technical SEO (page load, heavy images)
+2. A more comprehensive report that will serve as basis for SEO strategy execution (in case a client wants to avail our SEO service)
