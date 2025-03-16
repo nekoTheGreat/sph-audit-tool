@@ -21,9 +21,16 @@ export interface SeoFieldRuleResult {
     errors?: AuditError[] | undefined,
 }
 
+export interface KeywordInfo {
+    word: string,
+    count: number,
+    density: number,
+}
+
 export interface SeoFieldRuleValidateParam {
     $: CheerioRoot,
     url: string,
+    keywords: KeywordInfo[],
 }
 
 export interface SEOField {

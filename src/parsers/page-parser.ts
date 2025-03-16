@@ -127,7 +127,7 @@ export class PageParser {
 
         let resultPromises: Promise<SeoFieldRuleResult>[] = [];
         for(const seoField of this.seoFields) {
-            resultPromises.push(seoField.validate({ $, url: this.url }));
+            resultPromises.push(seoField.validate({ $, url: this.url, keywords: this.keywords }));
         }
         const results = await Promise.all(resultPromises);
         for(const result of results) {
