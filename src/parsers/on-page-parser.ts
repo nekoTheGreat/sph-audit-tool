@@ -147,7 +147,7 @@ export class OnPageParser extends PageParser
             {
                 name: 'root_url',
                 label: 'Root URL',
-                async validate({ url }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
+                async validate({ url, keywords }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
                     const errors = [] as AuditError[];
                     if(!self.uniqueRootUrls.has(url)) {
                         self.uniqueRootUrls.add(url);
@@ -157,6 +157,25 @@ export class OnPageParser extends PageParser
                     const decodedUrl = decodeURI(url);
                     if(/\s/.exec(decodedUrl) != null) {
                         errors.push({key: 'unoptimized'})
+                    }
+                    const parsedUrl = new URL(url);
+                    let path = parsedUrl.pathname;
+                    if(path.charAt(0) == "/") {
+                        path = path.slice(1);
+                    }
+                    if(path.length > 0) {
+                        const tokens = path.split('-');
+                        let found = false;
+                        for(const token in tokens) {
+                            const index = keywords.findIndex(it => it.word == token);
+                            if(index > -1) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(!found) {
+                            errors.push({key: 'keyword_not_found'});
+                        }
                     }
                     return {
                         name: this.name,
