@@ -1,6 +1,7 @@
 import {createPlaywrightRouter, Dataset, PlaywrightCrawler } from 'crawlee';
 import {OnPageParser} from "./parsers/on-page-parser.js";
 import {ParserResult} from "./types.js";
+import {randomUUID} from "node:crypto";
 
 export async function crawl(url: string) : Promise<ParserResult[]> {
     const result = [] as ParserResult[];
@@ -29,6 +30,10 @@ export async function crawl(url: string) : Promise<ParserResult[]> {
             globs: [
                 `http*//*${hostname}/**`,
             ],
+            transformRequestFunction: (request) => {
+                request.uniqueKey = `${request.url}:${randomUUID()}`;
+                return request;
+            },
             label: 'on-page',
         });
 
@@ -74,7 +79,7 @@ export async function crawl(url: string) : Promise<ParserResult[]> {
         maxRequestsPerCrawl: 20,
     });
 
-    await crawler.run([url]);
+    await crawler.run([{ url: url, uniqueKey: `${url}:${randomUUID()}` }]);
 
     if(brokenLinks.size > 0) {
         for(const value of brokenLinks.values()) {
