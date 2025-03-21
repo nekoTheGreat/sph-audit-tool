@@ -61,6 +61,8 @@ export async function crawl(url: string) : Promise<ParserResult[]> {
                 ]
             }
         },
+        maxConcurrency: 4,
+        maxRequestsPerMinute: 250,
         // proxyConfiguration: new ProxyConfiguration({ proxyUrls: ['...'] }),
         requestHandler: router,
         failedRequestHandler: async ({ log, request }) => {
