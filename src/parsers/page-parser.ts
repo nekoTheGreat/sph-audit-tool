@@ -1,4 +1,4 @@
-import { type CheerioRoot} from "crawlee";
+import {type CheerioRoot, purgeDefaultStorages} from "crawlee";
 import {FieldAudit, ParserResult, SEOField, SeoFieldRuleResult} from "../types.js";
 
 export class PageParser {
@@ -138,6 +138,8 @@ export class PageParser {
                 errors: result.errors ?? [],
             });
         }
+
+        await purgeDefaultStorages();
 
         return {
             url: this.url,
