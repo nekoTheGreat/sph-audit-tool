@@ -4,7 +4,6 @@
     "type": "module",
     "description": "This is an example of a Crawlee project.",
     "dependencies": {
-        "@types/cheerio": "^0.22.35",
         "crawlee": "^3.0.0",
         "dotenv": "^16.4.7",
         "express": "^4.21.2",
