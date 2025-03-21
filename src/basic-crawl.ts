@@ -52,6 +52,7 @@ export async function crawl(url: string) : Promise<ParserResult[]> {
     const crawler = new PlaywrightCrawler({
         launchContext: {
             launchOptions: {
+                headless: true,
                 args: [
                     '--ignore-https-errors',
                     '--ignore-certificate-errors',
