@@ -95,7 +95,7 @@ export class OnPageParser extends PageParser
                     $('img').each((_, el) => {
                         checksPromises.push(new Promise((resolve) => {
                             (async () => {
-                                const src = $(el).prop('src');
+                                const src = $(el).prop('src')?.toString() ?? '';
                                 let valid = true;
                                 try {
                                     const resp = await fetch(src);
