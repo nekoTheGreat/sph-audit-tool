@@ -16,11 +16,7 @@ export class OnPageParser extends PageParser
                 label: 'Page URL',
                 async validate({ url, keywords }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
                     const errors = [] as AuditError[];
-                    if(!self.uniquePageUrls.has(url)) {
-                        self.uniquePageUrls.add(url);
-                    } else {
-                        errors.push({key: 'duplicate'});
-                    }
+
                     const decodedUrl = decodeURI(url);
                     if(/\s/.exec(decodedUrl) != null) {
                         errors.push({key: 'unoptimized'})

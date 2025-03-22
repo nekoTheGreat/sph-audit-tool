@@ -1,6 +1,6 @@
-import {createPlaywrightRouter, Dataset, PlaywrightCrawler } from 'crawlee';
+import {createPlaywrightRouter, PlaywrightCrawler } from 'crawlee';
 import {OnPageParser} from "./parsers/on-page-parser.js";
-import {ParserResult} from "./types.js";
+import {AuditError, ParserResult} from "./types.js";
 import {randomUUID} from "node:crypto";
 
 export async function crawl(url: string) : Promise<ParserResult[]> {
@@ -10,18 +10,25 @@ export async function crawl(url: string) : Promise<ParserResult[]> {
         url = "https://" + url;
     }
     const parsedUrl = new URL(url);
-    // const dataSetId = `${parsedUrl.hostname}-${(new Date()).getTime()}`;
-    // const dataset = await Dataset.open(dataSetId);
+    const uniquePageUrls = new Set<string>();
 
     const router = createPlaywrightRouter();
+
+    const parsedAsUniqueUrl = (url: string) : string => {
+        const parsedUrl = new URL(url);
+        parsedUrl.hash = "";
+        if(parsedUrl.searchParams) parsedUrl.searchParams.sort();
+        return parsedUrl.toString();
+    }
 
     router.addDefaultHandler(async ({ request, log, enqueueLinks, parseWithCheerio }) => {
         log.info(`Processing URL: ${request.url}`);
         const $ = await parseWithCheerio();
 
+        uniquePageUrls.add(parsedAsUniqueUrl(request.url));
+
         const onPageParser = new OnPageParser(request.url, $);
         const parseResult = await onPageParser.parse({ $ });
-        // await dataset.pushData(parseResult);
         result.push(parseResult);
 
         log.info(`enqueueing new URLs`);
@@ -43,13 +50,36 @@ export async function crawl(url: string) : Promise<ParserResult[]> {
     router.addHandler('on-page', async ({ request, log, parseWithCheerio }) => {
         log.info(`Processing URL: ${request.url}`);
 
-        const $ = await parseWithCheerio();
+        const uniquePageUrl = parsedAsUniqueUrl(request.url);
+        if(!uniquePageUrls.has(uniquePageUrl)) {
+            uniquePageUrls.add(uniquePageUrl);
 
-        const onPageParser = new OnPageParser(request.url, $);
-        const parseResult = await onPageParser.parse({ $ });
-        result.push(parseResult);
+            const $ = await parseWithCheerio();
 
-        log.info(`Processed URL: ${request.url}`);
+            const onPageParser = new OnPageParser(request.url, $);
+            const parseResult = await onPageParser.parse({ $ });
+            result.push(parseResult);
+
+            log.info(`Processed URL: ${request.url}`);
+        } else {
+            const page_url_errors = [
+                { key: 'duplicate' }
+            ] as AuditError[];
+            const parsedUrl = new URL(request.url);
+            if(parsedUrl.hash) {
+                page_url_errors.push({ key: 'unoptimized', message: `url hash: ${parsedUrl.hash}`})
+            }
+            result.push({
+                url: request.url,
+                audits: [
+                    {
+                        name: 'page_url',
+                        errors: page_url_errors,
+                    },
+                ]
+            });
+            log.info(`Skipped, already processed`);
+        }
     });
 
     const brokenLinks = new Set<string>();
