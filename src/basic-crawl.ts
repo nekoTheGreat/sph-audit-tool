@@ -1,4 +1,4 @@
-import {createPlaywrightRouter, Dataset, PlaywrightCrawler } from 'crawlee';
+import {createPlaywrightRouter, Dataset, PlaywrightCrawler, purgeDefaultStorages} from 'crawlee';
 import {OnPageParser} from "./parsers/on-page-parser.js";
 import {ParserResult} from "./types.js";
 import {randomUUID} from "node:crypto";
@@ -91,6 +91,9 @@ export async function crawl(url: string) : Promise<ParserResult[]> {
             })
         }
     }
+
+    // purge all of them so that we can re-crawl same url
+    await purgeDefaultStorages();
 
     return result;
 }
