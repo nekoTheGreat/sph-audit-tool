@@ -6,12 +6,52 @@ export class OnPageParser extends PageParser
 {
     uniqueMetaDescriptions = new Set<string>();
     uniqueTitles = new Set<string>();
-    uniqueRootUrls = new Set<string>();
+    uniquePageUrls = new Set<string>();
 
     override setup() {
         this.group = 'on-page';
         const self = this;
         this.seoFields = [
+            {
+                name: 'page_url',
+                label: 'Page URL',
+                async validate({ url, keywords }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
+                    const errors = [] as AuditError[];
+                    if(!self.uniquePageUrls.has(url)) {
+                        self.uniquePageUrls.add(url);
+                    } else {
+                        errors.push({key: 'duplicate'});
+                    }
+                    const decodedUrl = decodeURI(url);
+                    if(/\s/.exec(decodedUrl) != null) {
+                        errors.push({key: 'unoptimized'})
+                    }
+                    const parsedUrl = new URL(url);
+                    let path = parsedUrl.pathname;
+                    if(path.charAt(0) == "/") {
+                        path = path.slice(1);
+                    }
+                    if(path.length > 0) {
+                        const tokens = path.split('-');
+                        let found = false;
+                        for(const token in tokens) {
+                            const index = keywords.findIndex(it => it.word == token);
+                            if(index > -1) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(!found) {
+                            errors.push({key: 'keyword_not_found'});
+                        }
+                    }
+                    return {
+                        name: this.name,
+                        valid: errors.length == 0,
+                        errors,
+                    }
+                },
+            },
             {
                 name: 'title',
                 label: 'Title',
@@ -135,46 +175,6 @@ export class OnPageParser extends PageParser
                         }
                         if(el.filter( (_, subEl) => $(subEl).text().trim().length > 0 ).length > 0) {
                             errors.push({key: 'duplicate'});
-                        }
-                    }
-                    return {
-                        name: this.name,
-                        valid: errors.length == 0,
-                        errors,
-                    }
-                },
-            },
-            {
-                name: 'root_url',
-                label: 'Root URL',
-                async validate({ url, keywords }: SeoFieldRuleValidateParam): Promise<SeoFieldRuleResult> {
-                    const errors = [] as AuditError[];
-                    if(!self.uniqueRootUrls.has(url)) {
-                        self.uniqueRootUrls.add(url);
-                    } else {
-                        errors.push({key: 'duplicate'});
-                    }
-                    const decodedUrl = decodeURI(url);
-                    if(/\s/.exec(decodedUrl) != null) {
-                        errors.push({key: 'unoptimized'})
-                    }
-                    const parsedUrl = new URL(url);
-                    let path = parsedUrl.pathname;
-                    if(path.charAt(0) == "/") {
-                        path = path.slice(1);
-                    }
-                    if(path.length > 0) {
-                        const tokens = path.split('-');
-                        let found = false;
-                        for(const token in tokens) {
-                            const index = keywords.findIndex(it => it.word == token);
-                            if(index > -1) {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if(!found) {
-                            errors.push({key: 'keyword_not_found'});
                         }
                     }
                     return {
