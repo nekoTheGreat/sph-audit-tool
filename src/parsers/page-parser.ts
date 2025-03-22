@@ -23,6 +23,11 @@ export class PageParser {
     public group: string = '';
 
     /**
+     * Unique page urls
+     */
+    uniquePageUrls = new Set<string>();
+
+    /**
      * Store keywords of a page
      */
     keywords: {word: string, count: number, density: number}[] = [];

@@ -6,7 +6,6 @@ export class OnPageParser extends PageParser
 {
     uniqueMetaDescriptions = new Set<string>();
     uniqueTitles = new Set<string>();
-    uniquePageUrls = new Set<string>();
 
     override setup() {
         this.group = 'on-page';
