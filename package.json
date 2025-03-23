@@ -10,18 +10,20 @@
     },
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",
+        "nuxt": "^3.16.1",
         "@types/node": "^22.13.10",
         "tsx": "^4.4.0",
-        "typescript": "~5.7.0"
+        "typescript": "~5.7.0",
+        "vue": "^3.5.13",
+        "vue-router": "^4.5.0"
     },
     "scripts": {
-        "start": "npm run start:dev",
-        "start:prod": "node dist/main.js",
-        "start:dev": "tsx src/main.ts",
-        "build": "tsc",
-        "build:prod": "cp -f .env ./dist/.env && tsc",
-        "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1",
-        "postinstall": "npx crawlee install-playwright-browsers"
+        "dev": "nuxt dev",
+        "build": "nuxt build",
+        "build:prod": "cp -f .env ./dist/.env && nuxt build",
+        "generate": "nuxt generate",
+        "preview": "nuxt preview",
+        "postinstall": "nuxt prepare"
     },
     "author": "It's not you it's me",
     "license": "ISC"

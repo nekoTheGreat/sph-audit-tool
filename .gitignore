@@ -1,8 +1,24 @@
-# This file tells Git which files shouldn't be added to source control
-
-.idea
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
 dist
+
+# Node dependencies
 node_modules
-storage
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
 .env
-ecosystem.config.cjs
+.env.*
+!.env.example
