@@ -1,0 +1,32 @@
+services:
+  sph_server:
+    container_name: sph_server
+    build:
+      context: ./
+    ports:
+      - ${EXPOSE_WEB_PORT}:80
+    volumes:
+      - ./:/var/www/sph
+      - /var/www/sph/node_modules
+    depends_on:
+      - sph_db
+  sph_db:
+    container_name: sph_db
+    image: postgres:17.4
+    ports:
+      - ${EXPOSE_DB_PORT}:5432
+    volumes:
+      - sph_db:/var/lib/postgresql/data
+    environment:
+      TZ: "UTC"
+      POSTGRES_DB: sph
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+  adminer:
+    container_name: sph_db_admin
+    image: adminer:5.0.6
+    ports:
+      - ${EXPOSE_DB_ADMIN_PORT}:8080
+volumes:
+  sph_db:
+    driver: local

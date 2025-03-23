@@ -1,51 +1,57 @@
-# Specify the base Docker image. You can read more about
-# the available images at https://crawlee.dev/docs/guides/docker-images
-# You can also use any other image from Docker Hub.
-FROM apify/actor-node-playwright-chrome:20 AS builder
+FROM ubuntu:24.04
 
-# Copy just package.json and package-lock.json
-# to speed up the build using Docker layer cache.
-COPY --chown=myuser package*.json ./
+ENV TZ=UTC
 
-# Install all dependencies. Don't audit to speed up the installation.
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --quiet \
+    software-properties-common \
+    libzip-dev zip unzip curl \
+    build-essential libmagickwand-dev \
+    libc-client-dev libkrb5-dev
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get install -y apache2 && apt-get clean
+
+ENV APACHE_RUN_USER www-data
+ENV APACHE_RUN_GROUP www-data
+ENV APACHE_LOG_DIR /var/log/apache2
+
+RUN apt-get install -y php libapache2-mod-php php-cli php-cgi php-pgsql
+
+RUN curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
+RUN HASH=`curl -sS https://composer.github.io/installer.sig`
+RUN php -r "if (hash_file('SHA384', '/tmp/composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+RUN php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
+
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+
+RUN apt-get install -y nodejs
+
+COPY ./docker/vhost.conf /etc/apache2/sites-available
+
+RUN a2ensite vhost
+RUN a2dissite 000-default
+RUN a2enmod rewrite
+RUN a2enmod proxy
+RUN a2enmod proxy_http
+RUN a2enmod proxy_balancer
+RUN a2enmod lbmethod_byrequests
+RUN a2enmod ssl
+RUN service apache2 restart
+
+RUN mkdir /var/www/sph && \
+    chmod -R 777 /var/www/sph
+
+WORKDIR /var/www/sph
+
+COPY ./package.json /var/www/sph/package.json
+
 RUN npm install --include=dev --audit=false
 
-# Next, copy the source files using the user set
-# in the base image.
-COPY --chown=myuser . ./
+RUN npm install pm2 -g
 
-# Install all dependencies and build the project.
-# Don't audit to speed up the installation.
-RUN npm run build
+COPY ./ecosystem.config.cjs /var/www/sph/ecosystem.config.cjs
 
-# Create final image
-FROM apify/actor-node-playwright-chrome:20
+EXPOSE 80
 
-# Copy only built JS files from builder image
-COPY --from=builder --chown=myuser /home/myuser/dist ./dist
-
-# Copy just package.json and package-lock.json
-# to speed up the build using Docker layer cache.
-COPY --chown=myuser package*.json ./
-
-# Install NPM packages, skip optional and development dependencies to
-# keep the image small. Avoid logging too much and print the dependency
-# tree for debugging
-RUN npm --quiet set progress=false \
-    && npm install --omit=dev --omit=optional \
-    && echo "Installed NPM packages:" \
-    && (npm list --omit=dev --all || true) \
-    && echo "Node.js version:" \
-    && node --version \
-    && echo "NPM version:" \
-    && npm --version
-
-# Next, copy the remaining files and directories with the source code.
-# Since we do this after NPM install, quick build will be really fast
-# for most source file changes.
-COPY --chown=myuser . ./
-
-
-# Run the image. If you know you won't need headful browsers,
-# you can remove the XVFB start script for a micro perf gain.
-CMD ./start_xvfb_and_run_cmd.sh && npm run start:prod --silent
+CMD ["./docker/start.sh"]
