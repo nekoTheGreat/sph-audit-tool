@@ -10,6 +10,11 @@ services:
       - /var/www/sph/node_modules
     depends_on:
       - sph_db
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
   sph_db:
     container_name: sph_db
     image: postgres:17.4
