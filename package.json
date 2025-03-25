@@ -6,7 +6,8 @@
     "dependencies": {
         "crawlee": "^3.0.0",
         "dotenv": "^16.4.7",
-        "playwright": "*"
+        "playwright": "*",
+        "uikit": "^3.23.3"
     },
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",

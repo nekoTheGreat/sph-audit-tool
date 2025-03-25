@@ -1,5 +1,7 @@
  <script setup lang="ts"></script>
 
  <template>
-   Good day...
+   <div class="uk-container">
+     Good day...
+   </div>
  </template>
