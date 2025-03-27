@@ -1,6 +1,39 @@
  <script setup lang="ts"></script>
 
  <template>
+   <nav class="uk-navbar-container">
+     <div class="uk-container">
+       <div uk-navbar>
+
+         <div class="uk-navbar-left">
+
+           <a class="uk-navbar-item uk-logo" href="#" aria-label="Back to Home">Logo</a>
+
+           <ul class="uk-navbar-nav">
+             <li>
+               <a href="#">
+                 <span class="uk-icon uk-margin-xsmall-right" uk-icon="icon: star"></span>
+                 Features
+               </a>
+             </li>
+           </ul>
+
+           <div class="uk-navbar-item">
+             <div>Some <a href="#">Link</a></div>
+           </div>
+
+           <div class="uk-navbar-item">
+             <form action="javascript:void(0)">
+               <input class="uk-input uk-form-width-small" type="text" placeholder="Input" aria-label="Input">
+               <button class="uk-button uk-button-default">Button</button>
+             </form>
+           </div>
+
+         </div>
+
+       </div>
+     </div>
+   </nav>
    <div class="uk-container">
      Good day...
    </div>
