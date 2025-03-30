@@ -1,28 +1,27 @@
 <script setup lang="ts">
 import * as z from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-
-const schema = z.object({
-  email: z.string().email('Invalid email'),
-  password: z.string().min(8, 'Must be at least 8 characters')
-})
-
-type Schema = z.infer<typeof schema>
+import { LoginFormDataSchema } from "~/common/schemas";
 
 const state = reactive({
   email: '',
   password: ''
-})
+});
+const { loggedIn, user, fetch: refreshSession } = useUserSession();
 
-const toast = useToast()
-async function onSubmit(event: FormSubmitEvent<Schema>) {
-  toast.add({ title: 'Success', description: 'The form has been submitted.', color: 'success' })
-  console.log(event.data)
+async function onSubmit(event: FormSubmitEvent<LoginFormDataSchema>) {
+  try {
+    await $fetch("/api/auth/login", { method: 'POST', body: event.data});
+    await refreshSession();
+    await navigateTo("/");
+  } catch (e) {
+    alert(e.data?.message ?? e.message);
+  }
 }
 </script>
 
 <template>
-  <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+  <UForm :schema="LoginFormDataSchema" :state="state" class="space-y-4" @submit="onSubmit">
     <UFormField label="Email" name="email">
       <UInput class="w-full" v-model="state.email" />
     </UFormField>
