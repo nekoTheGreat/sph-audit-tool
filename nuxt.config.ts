@@ -13,8 +13,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     auth: {
-      user: process.env.BASIC_AUTH_USER,
-      pass: process.env.BASIC_AUTH_PASS,
+      user: process.env.ADMIN_USERS,
+      pass: process.env.ADMIN_PASS,
     }
   }
 })

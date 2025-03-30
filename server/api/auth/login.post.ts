@@ -4,11 +4,12 @@ const runtimeConfig = useRuntimeConfig();
 
 export default defineEventHandler(async (event) => {
     const { email, password } = await readValidatedBody(event, LoginFormDataSchema.parse);
-    console.log(email, password)
-    if(runtimeConfig.auth.user == email && runtimeConfig.auth.pass == password) {
+    const admin_users = runtimeConfig.auth.user.split(',');
+    if(admin_users.includes(email) && runtimeConfig.auth.pass == password) {
         await setUserSession(event, {
             user: {
-                name: 'Sample User'
+                name: 'Sample User',
+                email: email,
             }
         })
     } else {
