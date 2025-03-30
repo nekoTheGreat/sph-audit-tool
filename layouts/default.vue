@@ -6,7 +6,6 @@
       <slot/>
     </main>
     <div class="text-center text-xs" style="height: 10px;">
-      This is only a test page.
     </div>
   </div>
 </template>
