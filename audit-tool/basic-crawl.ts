@@ -1,6 +1,6 @@
 import {createPlaywrightRouter, PlaywrightCrawler } from 'crawlee';
 import {OnPageParser} from "./parsers/on-page-parser.js";
-import {AuditError, ParserResult} from "./types.js";
+import type {AuditError, ParserResult} from "./types.js";
 import {randomUUID} from "node:crypto";
 
 export async function crawl(url: string) : Promise<ParserResult[]> {

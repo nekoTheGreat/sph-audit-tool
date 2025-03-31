@@ -1,6 +1,6 @@
 import {PageParser} from "./page-parser.js";
 import {isNotEmpty, isStrLenLessOrEqual, isStrUnique} from "../common-validators.js";
-import {AuditError, SeoFieldRuleResult, SeoFieldRuleValidateParam } from "../types.js";
+import type {AuditError, SeoFieldRuleResult, SeoFieldRuleValidateParam } from "../types.js";
 
 export class OnPageParser extends PageParser
 {

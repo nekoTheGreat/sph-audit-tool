@@ -1,5 +1,5 @@
 import {type CheerioRoot} from "crawlee";
-import {FieldAudit, ParserResult, SEOField, SeoFieldRuleResult} from "../types.js";
+import type {FieldAudit, ParserResult, SEOField, SeoFieldRuleResult} from "../types.js";
 
 export class PageParser {
     public url: string;

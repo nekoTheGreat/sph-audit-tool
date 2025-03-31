@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
-import {ParserResult} from "./types.js";
+import type {ParserResult} from "./types.js";
 import {crawl} from "./basic-crawl.js";
 
 dotenv.config();

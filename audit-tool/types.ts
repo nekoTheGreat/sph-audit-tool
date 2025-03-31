@@ -1,4 +1,4 @@
-import {CheerioRoot} from "crawlee"
+import type {CheerioRoot} from "crawlee"
 
 export interface ParserResult {
     url: string,
