@@ -30,5 +30,8 @@
         "postinstall": "nuxt prepare"
     },
     "author": "It's not you it's me",
-    "license": "ISC"
+    "license": "ISC",
+    "optionalDependencies": {
+        "@rollup/rollup-linux-x64-gnu": "^4.39.0"
+    }
 }
